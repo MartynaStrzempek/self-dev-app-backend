@@ -8,17 +8,11 @@ module.exports = {
         primaryKey: true,
         type: Sequelize.INTEGER
       },
-      name: {
+      goalName: {
         type: Sequelize.STRING
       },
-      subname: {
+      subgoalName: {
         type: Sequelize.STRING
-      },
-      prise: {
-        type: Sequelize.STRING
-      },
-      score: {
-        type: Sequelize.INTEGER
       },
       createdAt: {
         allowNull: false,
