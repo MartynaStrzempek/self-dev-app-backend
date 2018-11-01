@@ -8,9 +8,9 @@ module.exports = {
         primaryKey: true,
         type: Sequelize.INTEGER
       },
-      data: {
+      date: {
         allowNull: false,
-        type: Sequelize.DATE
+        type: Sequelize.STRING
       },
       note: {
         type: Sequelize.STRING

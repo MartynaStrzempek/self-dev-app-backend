@@ -1,7 +1,7 @@
 'use strict';
 module.exports = (sequelize, DataTypes) => {
   const Result = sequelize.define('Result', {
-    data: DataTypes.DATE,
+    date: DataTypes.STRING,
     note: DataTypes.STRING
   }, {});
   Result.associate = function(models) {
@@ -9,7 +9,7 @@ module.exports = (sequelize, DataTypes) => {
         foreignKey: {
             allowNull: false
         }
-    })
+    });
     Result.belongsTo(models.Status, {
         foreignKey: {
             allowNull: false

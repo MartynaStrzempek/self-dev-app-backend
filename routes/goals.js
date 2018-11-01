@@ -11,7 +11,7 @@ router.get('/', function(req, res) {
 router.get('/:goalId', function (req, res) {
     models.Goal
         .findById(req.params.goalId)
-        .then((user) => res.status(200).send(user))
+        .then((goal) => res.status(200).send(goal))
         .catch((error) => res.status(400).send(error));
 });
 
