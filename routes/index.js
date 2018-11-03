@@ -84,18 +84,26 @@ router.post('/user/:userId/goal/:goalId/result', function (req, res) {
         .then(user => {
             const goal = user.dataValues.Goals.filter(goal => goal.dataValues.id == req.params.goalId);
             const date = new Date();
-            models.Result
-                .create({
-                    date: date.toISOString().slice(0, 10),
-                    note: '',
-                    GoalId: goal[0].dataValues.id,
-                    StatusId: 1
+            models.Status
+                .findAll({
+                    where: {
+                        name: req.body.status
+                    }
                 })
-                .then(result => res.status(200).send(result))
-                .catch(error => console.log(error))
-            // return res.status(200).send(user)
+                .then(status => {
+                    models.Result
+                        .create({
+                            date: date.toISOString().slice(0, 10),
+                            note: '',
+                            GoalId: goal[0].dataValues.id,
+                            StatusId: status[0].dataValues.id
+                        })
+                        .then(result => res.status(200).send(result))
+                        .catch(error => console.log(error))
+                })
+                .catch(error => res.status(400).send(error));
         })
-        .catch((error) => console.log(error));
+        .catch(error => res.status(400).send(error));
 });
 
 router.put('/result/:resultId', function (req, res) {
