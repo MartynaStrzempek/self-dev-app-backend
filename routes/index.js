@@ -93,7 +93,7 @@ router.post('/user/:userId/goal/:goalId/result', function (req, res) {
                 .then(status => {
                     models.Result
                         .create({
-                            date: date.toISOString().slice(0, 10),
+                            date: req.body.date,
                             note: '',
                             GoalId: goal[0].dataValues.id,
                             StatusId: status[0].dataValues.id
@@ -148,26 +148,11 @@ router.get('/goal/:goalId/prise', function (req, res) {
         .catch((error) => console.log(error));
 });
 
-
-
-
-
-
-
-
-
-
-
-
-
-// router.get('/results', function(req, res) {
-//     models.Result.find({
-//         include: [ models.Goal ]
-//     })
-//         .then((users) => res.status(200).send(users))
-//         .catch((error) => res.status(400).send(error));
-// });
-
-
+router.get('/prises/:priseId', function (req, res) {
+    models.Prise
+        .findById(req.params.priseId)
+        .then(prise => res.status(200).send(prise))
+        .catch((error) => console.log(error));
+});
 
 module.exports = router;
