@@ -94,7 +94,7 @@ router.post('/user/:userId/goal/:goalId/result', function (req, res) {
                     models.Result
                         .create({
                             date: req.body.date,
-                            note: '',
+                            note: req.body.note,
                             GoalId: goal[0].dataValues.id,
                             StatusId: status[0].dataValues.id
                         })
