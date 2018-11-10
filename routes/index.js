@@ -200,4 +200,16 @@ router.get('/prises/:priseId', function (req, res) {
         .catch((error) => console.log(error));
 });
 
+router.delete('/goals/:goalId', function (req, res) {
+    models.Goal
+        .findById(req.params.goalId)
+        .then(goal => {
+            return goal
+                .destroy()
+                .then(() => res.status(200).send())
+                .catch(error => res.status(400).send(error))
+        })
+        .catch(error => res.status(400).send(error))
+});
+
 module.exports = router;
