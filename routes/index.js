@@ -64,6 +64,38 @@ router.post('/user/:userId/goal', function (req, res) {
         .catch((error) => res.status(400).send(error));
 });
 
+router.put('/user/:userId/goal/:goalId', function (req, res) {
+    models.Prise
+        .findById(req.body.priseId)
+        .then(prise => {
+            prise
+                .update({
+                    description: req.body.description,
+                    score: req.body.score
+                })
+        })
+        .then(() => {
+            models.User
+                .findById(req.params.userId)
+                .then(user => {
+                    models.Goal
+                        .findById(req.params.goalId)
+                        .then(goal => {
+                            goal
+                                .update({
+                                    goalName: req.body.goalName,
+                                    subgoalName: req.body.subgoalName,
+                                })
+                        })
+                        .then(goal => res.status(200).send(goal))
+                        .catch((error) => res.status(400).send(error));
+                })
+                .catch((error) => res.status(400).send(error));
+        })
+        .catch((error) => res.status(400).send(error));
+});
+
+
 // router.get('/user/:userId/goals', function (req, res) {
 //     models.User
 //         .findById(req.params.userId, {
@@ -107,15 +139,28 @@ router.post('/user/:userId/goal/:goalId/result', function (req, res) {
 });
 
 router.put('/result/:resultId', function (req, res) {
+    let statusId;
+    models.Status
+        .find({
+            where: {
+                name: req.body.status
+            }
+        })
+        .then(status => statusId = status.dataValues.id)
+        .catch(error => res.send(error));
+
     models.Result
         .findById(req.params.resultId)
         .then(result => {
-            return result
+            result
                 .update({
-                    name: req.body.status,
+                    StatusId: statusId ? statusId : req.body.statusId,
                     note: req.body.note,
                 })
-                .then(() => res.status(200).send(result))
+                .then((res) => {
+                    console.log("result---------------", result)
+                    res.status(200).send(res)
+                })
                 .catch(err => res.send(err));
         })
         .catch((error) => console.log(error));
