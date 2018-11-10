@@ -112,7 +112,8 @@ router.put('/result/:resultId', function (req, res) {
         .then(result => {
             return result
                 .update({
-                    note: req.body.note
+                    name: req.body.status,
+                    note: req.body.note,
                 })
                 .then(() => res.status(200).send(result))
                 .catch(err => res.send(err));
@@ -139,7 +140,6 @@ router.get('/goal/:goalId/prise', function (req, res) {
         .findById(req.params.goalId)
         .then(goal => {
             const priseId = goal.dataValues.PriseId;
-            console.log("priseId ---------------", priseId);
             models.Prise
                 .findById(priseId)
                 .then(prise => res.status(200).send(prise))
