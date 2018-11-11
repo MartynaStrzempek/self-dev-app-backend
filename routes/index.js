@@ -104,35 +104,41 @@ router.post('/user/:userId/goal', verifyToken, function (req, res) {
     });
 });
 
-router.put('/user/:userId/goal/:goalId', function (req, res) {
-    models.Prise
-        .findById(req.body.priseId)
-        .then(prise => {
-            prise
-                .update({
-                    description: req.body.description,
-                    score: req.body.score
-                })
-        })
-        .then(() => {
-            models.User
-                .findById(req.params.userId)
-                .then(user => {
-                    models.Goal
-                        .findById(req.params.goalId)
-                        .then(goal => {
-                            goal
-                                .update({
-                                    goalName: req.body.goalName,
-                                    subgoalName: req.body.subgoalName,
-                                })
+router.put('/user/:userId/goal/:goalId', verifyToken, function (req, res) {
+    jwt.verify(req.token, 'secretKey', function (err) {
+        if (err) {
+            res.sendStatus(403);
+        } else {
+            models.Prise
+                .findById(req.body.priseId)
+                .then(prise => {
+                    prise
+                        .update({
+                            description: req.body.description,
+                            score: req.body.score
                         })
-                        .then(goal => res.status(200).send(goal))
+                })
+                .then(() => {
+                    models.User
+                        .findById(req.params.userId)
+                        .then(user => {
+                            models.Goal
+                                .findById(req.params.goalId)
+                                .then(goal => {
+                                    goal
+                                        .update({
+                                            goalName: req.body.goalName,
+                                            subgoalName: req.body.subgoalName,
+                                        })
+                                })
+                                .then(goal => res.status(200).send(goal))
+                                .catch((error) => res.status(400).send(error));
+                        })
                         .catch((error) => res.status(400).send(error));
                 })
                 .catch((error) => res.status(400).send(error));
-        })
-        .catch((error) => res.status(400).send(error));
+        }
+    });
 });
 
 
@@ -148,108 +154,144 @@ router.put('/user/:userId/goal/:goalId', function (req, res) {
 //         .catch((error) => res.status(400).send(error));
 // });
 
-router.post('/user/:userId/goal/:goalId/result', function (req, res) {
-    models.User
-        .findById(req.params.userId, {
-            include: [ models.Goal ]
-        })
-        .then(user => {
-            const goal = user.dataValues.Goals.filter(goal => goal.dataValues.id == req.params.goalId);
-            const date = new Date();
+router.post('/user/:userId/goal/:goalId/result', verifyToken, function (req, res) {
+    jwt.verify(req.token, 'secretKey', function (err) {
+        if (err) {
+            res.sendStatus(403);
+        } else {
+            models.User
+                .findById(req.params.userId, {
+                    include: [ models.Goal ]
+                })
+                .then(user => {
+                    const goal = user.dataValues.Goals.filter(goal => goal.dataValues.id == req.params.goalId);
+                    const date = new Date();
+                    models.Status
+                        .findAll({
+                            where: {
+                                name: req.body.status
+                            }
+                        })
+                        .then(status => {
+                            models.Result
+                                .create({
+                                    date: req.body.date,
+                                    note: req.body.note,
+                                    GoalId: goal[0].dataValues.id,
+                                    StatusId: status[0].dataValues.id
+                                })
+                                .then(result => res.status(200).send(result))
+                                .catch(error => console.log(error))
+                        })
+                        .catch(error => res.status(400).send(error));
+                })
+                .catch(error => res.status(400).send(error));
+        }
+    });
+});
+
+router.put('/result/:resultId', verifyToken, function (req, res) {
+    jwt.verify(req.token, 'secretKey', function (err) {
+        if (err) {
+            res.sendStatus(403);
+        } else {
+            let statusId;
             models.Status
-                .findAll({
+                .find({
                     where: {
                         name: req.body.status
                     }
                 })
-                .then(status => {
-                    models.Result
-                        .create({
-                            date: req.body.date,
+                .then(status => statusId = status.dataValues.id)
+                .catch(error => res.send(error));
+
+            models.Result
+                .findById(req.params.resultId)
+                .then(result => {
+                    result
+                        .update({
+                            StatusId: statusId ? statusId : req.body.statusId,
                             note: req.body.note,
-                            GoalId: goal[0].dataValues.id,
-                            StatusId: status[0].dataValues.id
                         })
-                        .then(result => res.status(200).send(result))
-                        .catch(error => console.log(error))
+                        .then((res) => {
+                            console.log("result---------------", result)
+                            res.status(200).send(res)
+                        })
+                        .catch(err => res.send(err));
                 })
-                .catch(error => res.status(400).send(error));
-        })
-        .catch(error => res.status(400).send(error));
+                .catch((error) => console.log(error));
+        }
+    });
 });
 
-router.put('/result/:resultId', function (req, res) {
-    let statusId;
-    models.Status
-        .find({
-            where: {
-                name: req.body.status
-            }
-        })
-        .then(status => statusId = status.dataValues.id)
-        .catch(error => res.send(error));
-
-    models.Result
-        .findById(req.params.resultId)
-        .then(result => {
-            result
-                .update({
-                    StatusId: statusId ? statusId : req.body.statusId,
-                    note: req.body.note,
+router.get('/user/:userId/goals', verifyToken, function (req, res) {
+    jwt.verify(req.token, 'secretKey', function (err) {
+        if (err) {
+            res.sendStatus(403);
+        } else {
+            models.Goal
+                .findAll({
+                    where: {
+                        UserId: req.params.userId
+                    },
+                    include: [ models.Result ]
                 })
-                .then((res) => {
-                    console.log("result---------------", result)
-                    res.status(200).send(res)
+                .then(goals => {
+                    return res.send(goals)
                 })
-                .catch(err => res.send(err));
-        })
-        .catch((error) => console.log(error));
+                .catch((error) => console.log(error));
+        }
+    });
 });
 
-router.get('/user/:userId/goals', function (req, res) {
-    models.Goal
-        .findAll({
-           where: {
-               UserId: req.params.userId
-           },
-           include: [ models.Result ]
-        })
-        .then(goals => {
-            return res.send(goals)
-        })
-        .catch((error) => console.log(error));
+router.get('/goal/:goalId/prise', verifyToken, function (req, res) {
+    jwt.verify(req.token, 'secretKey', function (err) {
+        if (err) {
+            res.sendStatus(403);
+        } else {
+            models.Goal
+                .findById(req.params.goalId)
+                .then(goal => {
+                    const priseId = goal.dataValues.PriseId;
+                    models.Prise
+                        .findById(priseId)
+                        .then(prise => res.status(200).send(prise))
+                        .catch(err => res.status(400).send(err));
+                })
+                .catch((error) => console.log(error));
+        }
+    });
 });
 
-router.get('/goal/:goalId/prise', function (req, res) {
-    models.Goal
-        .findById(req.params.goalId)
-        .then(goal => {
-            const priseId = goal.dataValues.PriseId;
+router.get('/prises/:priseId', verifyToken, function (req, res) {
+    jwt.verify(req.token, 'secretKey', function (err) {
+        if (err) {
+            res.sendStatus(403);
+        } else {
             models.Prise
-                .findById(priseId)
+                .findById(req.params.priseId)
                 .then(prise => res.status(200).send(prise))
-                .catch(err => res.status(400).send(err));
-        })
-        .catch((error) => console.log(error));
+                .catch((error) => console.log(error));
+        }
+    });
 });
 
-router.get('/prises/:priseId', function (req, res) {
-    models.Prise
-        .findById(req.params.priseId)
-        .then(prise => res.status(200).send(prise))
-        .catch((error) => console.log(error));
-});
-
-router.delete('/goals/:goalId', function (req, res) {
-    models.Goal
-        .findById(req.params.goalId)
-        .then(goal => {
-            return goal
-                .destroy()
-                .then(() => res.status(200).send())
+router.delete('/goals/:goalId', verifyToken, function (req, res) {
+    jwt.verify(req.token, 'secretKey', function (err) {
+        if (err) {
+            res.sendStatus(403);
+        } else {
+            models.Goal
+                .findById(req.params.goalId)
+                .then(goal => {
+                    return goal
+                        .destroy()
+                        .then(() => res.status(200).send())
+                        .catch(error => res.status(400).send(error))
+                })
                 .catch(error => res.status(400).send(error))
-        })
-        .catch(error => res.status(400).send(error))
+        }
+    });
 });
 
 function verifyToken(req, res, next) {
