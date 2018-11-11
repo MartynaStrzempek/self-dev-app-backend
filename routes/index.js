@@ -1,6 +1,7 @@
 var models = require('../models');
 var express = require('express');
 var router = express.Router();
+const jwt = require('jsonwebtoken');
 
 router.post('/status', function (req, res) {
    models.Status
@@ -36,6 +37,39 @@ router.get('/users', function (req, res) {
         })
         .then(users => res.status(200).send(users))
         .catch((error) => res.status(400).send(error));
+});
+
+router.post('/login', function (req, res) {
+   models.User
+       .find({
+           where: {
+               login: req.body.login
+           }
+       })
+       .then(user => {
+           if (user) {
+               if (user.password === req.body.password) {
+                   jwt.sign({ user }, 'secretKey', function (err, token) {
+                       res.json({
+                           token: token,
+                           userId: user.id
+                       });
+                   })
+               } else {
+                   res.status(400).json({ error: "Password does not match to login" })
+               }
+           } else {
+               res.status(400).json({ error: "There is no user with login like this" });
+           }
+       })
+       .catch(error => res.status(400).send(error))
+});
+
+router.get('/users/:userId', function (req, res) {
+    models.User
+        .findById(req.params.userId)
+        .then(user => res.status(200).send(user))
+        .catch(error => res.status(400).send(error))
 });
 
 router.post('/user/:userId/goal', function (req, res) {
