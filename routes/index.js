@@ -72,30 +72,36 @@ router.get('/users/:userId', function (req, res) {
         .catch(error => res.status(400).send(error))
 });
 
-router.post('/user/:userId/goal', function (req, res) {
-    models.Prise
-        .create({
-            description: req.body.description,
-            score: req.body.score
-        })
-        .then(prise => {
-            models.User
-                .findById(req.params.userId)
-                .then(user => {
-                    models.Goal
-                        .create({
-                            goalName: req.body.goalName,
-                            subgoalName: req.body.subgoalName,
-                            PriseId: prise.dataValues.id,
-                            UserId: user.dataValues.id
-                        })
-                        .then(goal => res.status(200).send(goal))
-                        .catch((error) => res.status(400).send(error));
-                    // return res.status(200).send(user);
-                })
-                .catch((error) => res.status(400).send(error));
-        })
-        .catch((error) => res.status(400).send(error));
+router.post('/user/:userId/goal', verifyToken, function (req, res) {
+    jwt.verify(req.token, 'secretKey', function (err) {
+       if (err) {
+           res.sendStatus(403);
+       } else {
+           models.Prise
+               .create({
+                   description: req.body.description,
+                   score: req.body.score
+               })
+               .then(prise => {
+                   models.User
+                       .findById(req.params.userId)
+                       .then(user => {
+                           models.Goal
+                               .create({
+                                   goalName: req.body.goalName,
+                                   subgoalName: req.body.subgoalName,
+                                   PriseId: prise.dataValues.id,
+                                   UserId: user.dataValues.id
+                               })
+                               .then(goal => res.status(200).send(goal))
+                               .catch((error) => res.status(400).send(error));
+                           // return res.status(200).send(user);
+                       })
+                       .catch((error) => res.status(400).send(error));
+               })
+               .catch((error) => res.status(400).send(error));
+       }
+    });
 });
 
 router.put('/user/:userId/goal/:goalId', function (req, res) {
@@ -245,5 +251,17 @@ router.delete('/goals/:goalId', function (req, res) {
         })
         .catch(error => res.status(400).send(error))
 });
+
+function verifyToken(req, res, next) {
+    const bearerHeader = req.headers['authorization'];
+    if (typeof bearerHeader !== 'undefined') {
+        const bearer = bearerHeader.split(' ');
+        const bearerToken = bearer[1];
+        req.token = bearerToken;
+        next();
+    } else {
+        res.sendStatus(403);
+    }
+}
 
 module.exports = router;
