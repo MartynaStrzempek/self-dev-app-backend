@@ -3,7 +3,7 @@ var express = require('express');
 var router = express.Router();
 const jwt = require('jsonwebtoken');
 
-router.post('/status', function (req, res) {
+router.post('/statuses', function (req, res) {
    models.Status
        .create({
             name: req.body.name
@@ -19,7 +19,7 @@ router.get('/statuses', function (req, res) {
         .catch((error) => res.status(400).send(error));
 });
 
-router.post('/user', function (req, res) {
+router.post('/users', function (req, res) {
     models.User
         .create({
             login: req.body.login,
@@ -72,7 +72,7 @@ router.get('/users/:userId', function (req, res) {
         .catch(error => res.status(400).send(error))
 });
 
-router.post('/user/:userId/goal', verifyToken, function (req, res) {
+router.post('/users/:userId/goals', verifyToken, function (req, res) {
     jwt.verify(req.token, 'secretKey', function (err) {
        if (err) {
            res.sendStatus(403);
@@ -104,7 +104,7 @@ router.post('/user/:userId/goal', verifyToken, function (req, res) {
     });
 });
 
-router.put('/user/:userId/goal/:goalId', verifyToken, function (req, res) {
+router.put('/users/:userId/goals/:goalId', verifyToken, function (req, res) {
     jwt.verify(req.token, 'secretKey', function (err) {
         if (err) {
             res.sendStatus(403);
@@ -154,7 +154,7 @@ router.put('/user/:userId/goal/:goalId', verifyToken, function (req, res) {
 //         .catch((error) => res.status(400).send(error));
 // });
 
-router.post('/user/:userId/goal/:goalId/result', verifyToken, function (req, res) {
+router.post('/users/:userId/goals/:goalId/results', verifyToken, function (req, res) {
     jwt.verify(req.token, 'secretKey', function (err) {
         if (err) {
             res.sendStatus(403);
@@ -190,7 +190,7 @@ router.post('/user/:userId/goal/:goalId/result', verifyToken, function (req, res
     });
 });
 
-router.put('/result/:resultId', verifyToken, function (req, res) {
+router.put('/results/:resultId', verifyToken, function (req, res) {
     jwt.verify(req.token, 'secretKey', function (err) {
         if (err) {
             res.sendStatus(403);
@@ -224,7 +224,7 @@ router.put('/result/:resultId', verifyToken, function (req, res) {
     });
 });
 
-router.get('/user/:userId/goals', verifyToken, function (req, res) {
+router.get('/users/:userId/goals', verifyToken, function (req, res) {
     jwt.verify(req.token, 'secretKey', function (err) {
         if (err) {
             res.sendStatus(403);
@@ -244,7 +244,8 @@ router.get('/user/:userId/goals', verifyToken, function (req, res) {
     });
 });
 
-router.get('/goal/:goalId/prise', verifyToken, function (req, res) {
+//not used?
+router.get('/goals/:goalId/prises', verifyToken, function (req, res) {
     jwt.verify(req.token, 'secretKey', function (err) {
         if (err) {
             res.sendStatus(403);
